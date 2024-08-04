@@ -1,4 +1,6 @@
 const board = document.getElementById("gameBoard");
+const resetBtn = document.getElementById("restart");
+let mainGrid = [];
 
 // Size
 let width = 7;
@@ -43,10 +45,9 @@ function populate(){
     // TEST side-by-side bombs
     // grid[8] = '💣';
     // grid[9] = '💣';
-    // grid = markNumber(8, grid);
-    // grid = markNumber(9, grid);
+    // grid = markNumber(8, grid, sides, corners);
+    // grid = markNumber(9, grid, sides, corners);
     // mines -= 2;
-
 
     // Randomly put mines
     while (mines != 0){
@@ -67,52 +68,55 @@ function populate(){
 
 // Mark tiles near bombs
 function markNumber(idx, grid, sides, corners){
+    // Check if there's adjacent bomb
+    
+
     if (corners.includes(idx)){
         if(idx == corners[0]){          // top-left
-            grid[idx+1] += 1;
-            grid[idx+width] += 1;
-            grid[idx+width+1] += 1;
+            grid[idx+1]=='💣' ? null: grid[idx+1] += 1;
+            grid[idx+width]=='💣' ? null: grid[idx+width] += 1;
+            grid[idx+width+1]=='💣' ? null: grid[idx+width+1] += 1;
         } else if (idx == corners[1]){  // top-right
-            grid[idx-1] += 1;
-            grid[idx+width] += 1;
-            grid[idx+width-1] += 1;
+            grid[idx-1]=='💣' ? null: grid[idx-1] += 1;
+            grid[idx+width]=='💣' ? null: grid[idx+width] += 1;
+            grid[idx+width-1]=='💣' ? null: grid[idx+width-1] += 1;
         } else if (idx == corners[2]){  // bottom-left
-            grid[idx+1] += 1;
-            grid[idx-width] += 1;
-            grid[idx-width+1] += 1;
+            grid[idx+1]=='💣' ? null: grid[idx+1] += 1;
+            grid[idx-width]=='💣' ? null: grid[idx-width] += 1;
+            grid[idx-width+1]=='💣' ? null: grid[idx-width+1] += 1;
         } else {                        // bottom-right
-            grid[idx-1] += 1;
-            grid[idx-width] += 1;
-            grid[idx-width-1] += 1;
+            grid[idx-1]=='💣' ? null: grid[idx-1] += 1;
+            grid[idx-width]=='💣' ? null: grid[idx-width] += 1;
+            grid[idx-width-1]=='💣' ? null: grid[idx-width-1] += 1;
         }
     
     } else {
         // Sides
         if (sides[1].includes(idx) || sides[3].includes(idx)){
-            grid[idx-7] += 1;
-            grid[idx+7] += 1;
+            grid[idx-7]=='💣' ? null: grid[idx-7] += 1;
+            grid[idx+7]=='💣' ? null: grid[idx+7] += 1;
             if (sides[1].includes(idx)){
                 for(let i=-1; i<2; i++){
-                    grid[idx+1+i*7] += 1;
+                    grid[idx+1+i*7]=='💣' ? null: grid[idx+1+i*7] += 1;
                 }
             }
             
             if (sides[3].includes(idx)){
                 for (let i=-1; i<2; i++){
-                    grid[idx-1+i*7] += 1;
+                    grid[idx-1+i*7]=='💣' ? null: grid[idx-1+i*7] += 1;
                 }
             }
         } else {
             // Inside
-            grid[idx-1] += 1;
-            grid[idx+1] += 1;
+            grid[idx-1] == '💣'? null: grid[idx-1] += 1;
+            grid[idx+1] == '💣'? null: grid[idx+1] += 1;
             for(let i=0; i<3; i++){
                 if (!sides[2].includes(idx)){
-                    grid[idx+6+i] += 1;
+                    grid[idx+6+i]=='💣' ? null: grid[idx+6+i] += 1;
                 }
 
                 if (!sides[0].includes(idx)){
-                    grid[idx-8+i] += 1;
+                    grid[idx-8+i]=='💣' ? null: grid[idx-8+i] += 1;
                 }
             }
         }
@@ -160,7 +164,19 @@ function drawboard(grid){
     }
 }
 
+function cleanBoard(grid){
+    for (i=0; i<grid.length; i++){
+        document.getElementById("tile"+i).remove();
+    }
+}
+
 
 // Run the functions
-let grid = populate();
-drawboard(grid);
+function main(){
+    cleanBoard(mainGrid);
+    mainGrid = populate();
+    drawboard(mainGrid);
+}
+
+// Initial Start
+main();
