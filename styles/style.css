@@ -35,7 +35,8 @@
     align-items: center;
 }
 
-.tileClicked, .blank {
+
+.t0, .bomb {
     background: darkgray;
 }
 

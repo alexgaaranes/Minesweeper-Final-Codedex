@@ -195,24 +195,54 @@ function markNumber(idx, grid, sides, corners){
 function tileClicked(id){
     let tile = document.getElementById(id);
 
-    tile.setAttribute("class", "tileClicked");
+    
     // Display the tile type
     if (tile.getAttribute("name") == "bomb"){
-        tile.innerHTML = "💣"
+        tile.setAttribute("class", "bomb");
+        tile.innerHTML = "💣";
     } else {
         let tileLabel = tile.getAttribute("name")
-        if (tileLabel != "blank"){
-            tile.setAttribute("class", "t"+tileLabel)
+        tile.setAttribute("class", "t"+tileLabel)
+        if (tileLabel != "0"){
             tile.innerHTML = tileLabel;
-        } else {
-            tile.setAttribute("class", tileLabel)
         }
     }
     
+    excavate(id);
 }
 
 // Excavate
+function excavate(id){  // Take the id of the clicked tile and check 4 directions (up, down, left, right)
+    let idx = Number(id.slice(4, id.length));
+    // console.log(id, idx);
+    
+    if (mainGrid[idx] != 0){return;}    // base case
+    
+    if((idx - width > 0) && mainGrid[idx - width] != '💣'){             // Top
+        const tile = document.getElementById("tile"+String(idx-width));        
+        if(tile.getAttribute("class") != "t"+tile.getAttribute("name")){tileClicked("tile"+String(idx-width))};
+    }
 
+    if((idx - 1 % width != 0) && mainGrid[idx - 1] != '💣'){                // Left
+        console.log(idx, idx+1);
+        if(idx - 1 % width == 0){return ;}
+        const tile = document.getElementById("tile"+String(idx-1));
+        if(tile.getAttribute("class") != "t"+tile.getAttribute("name")){tileClicked("tile"+String(idx-1))};
+    }
+
+    if((idx + 1 % width != 0) && mainGrid[idx + 1] != '💣'){                // Right
+        console.log(idx, idx+1);
+        if(idx + 1 % width == 0){return ;}
+        const tile = document.getElementById("tile"+String(idx+1));
+        if(tile.getAttribute("class") != "t"+tile.getAttribute("name")){tileClicked("tile"+String(idx+1))};
+    }
+
+    if((idx + width < width*height) && mainGrid[idx + width] != '💣'){      // Bottom
+        const tile = document.getElementById("tile"+String(idx+width));        
+        if(tile.getAttribute("class") != "t"+tile.getAttribute("name")){tileClicked("tile"+String(idx+width))};
+    }
+
+}
 
 
 // Initial Click (Should be Safe)
@@ -237,7 +267,7 @@ function initialClick(id){
                 if (mainGrid[i] !=0 ){
                     tile.setAttribute("name", mainGrid[i]);
                 } else {
-                    tile.setAttribute("name", "blank");
+                    tile.setAttribute("name", "0");
                 }   
         }
     }
