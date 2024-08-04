@@ -136,8 +136,13 @@ function tileClicked(id){
         tile.innerHTML = "💣"
     } else {
         let tileLabel = tile.getAttribute("name")
-        tile.setAttribute("class", "t"+tileLabel)
-        tile.innerHTML = tileLabel;
+        if (tileLabel != "blank"){
+            tile.setAttribute("class", "t"+tileLabel)
+            tile.innerHTML = tileLabel;
+        } else {
+            tile.setAttribute("class", tileLabel)
+        }
+        
     }
     
 }
@@ -156,7 +161,12 @@ function drawboard(grid){
                 break;
             default:
                 // FIX HERE
-                tile.setAttribute("name", grid[i]);
+                if (grid[i] !=0 ){
+                    tile.setAttribute("name", grid[i]);
+                } else {
+                    tile.setAttribute("name", "blank");
+                }
+                
                 
         }
 

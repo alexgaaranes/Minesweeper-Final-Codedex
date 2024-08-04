@@ -35,38 +35,46 @@
     align-items: center;
 }
 
-.tileClicked {
+.tileClicked, .blank {
     background: darkgray;
 }
 
 .t1 {
     color: blue;
+    background: darkgray;
 }
 
 .t2 {
     color: green;
+    background: darkgray;
 }
 
 .t3 {
     color: orange;
+    background: darkgray;
 }
 
 .t4 {
     color: purple;
+    background: darkgray;
 }
 
 .t5 {
     color: red;
+    background: darkgray;
 }
 
 .t6 {
     color: cyan;
+    background: darkgray;
 }
 
 .t7 {
     color: deeppink;
+    background: darkgray;
 }
 
 .t8 {
     color: black;
+    background: darkgray;
 }
