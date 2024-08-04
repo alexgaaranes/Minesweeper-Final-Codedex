@@ -1,6 +1,6 @@
 const board = document.getElementById("gameBoard");
 const resetBtn = document.getElementById("restart");
-let mainGrid = [];
+var mainGrid = [];
 
 // Size
 let width = 7;
@@ -11,8 +11,22 @@ let height = 7;
 function populate(){
 
     // Initialization
-    let mines = 5;
     let grid = [];
+
+    // Create the Grid
+    for (let i=0; i<height; i++){
+        for (let j=0; j<width; j++){
+            grid.push(0);
+        }
+    }
+    return grid;
+}
+
+
+// Function to Create the GameBoard
+function createBoard(grid, firstIdx){
+    // Initializations
+    let mines = 5;
 
     // indexes of sides excluding corners
     let sides = [[],[],[],[]];
@@ -34,42 +48,93 @@ function populate(){
     corners.push(width*height-width);
     corners.push(width*height-1);
 
+    let safeSpace = getSafeSpace(sides, corners, firstIdx);
 
-    // Create the Board
-    for (let i=0; i<height; i++){
-        for (let j=0; j<width; j++){
-            grid.push(0);
-        }
-    }
-
-    // TEST side-by-side bombs
-    // grid[8] = '💣';
-    // grid[9] = '💣';
-    // grid = markNumber(8, grid, sides, corners);
-    // grid = markNumber(9, grid, sides, corners);
-    // mines -= 2;
-
-    // Randomly put mines
-    while (mines != 0){
-
-        let idx = Math.floor(Math.random() * 49);
-        console.log("Index", idx);
-        if (grid[idx] == 0){
-            grid[idx] = '💣';
-
-            grid = markNumber(idx, grid, sides, corners);
+    // Random Indexes for bombs
+    bombSpace = [];
+    while(mines !=0){
+        let idx = Math.floor(Math.random() * (width*height - safeSpace.length));
+        if(!bombSpace.includes(idx) && !safeSpace.includes(idx)){
+            bombSpace.push(idx);
             mines--;
         }
     }
 
-    console.log(grid);
+    // Put mines
+    for (let i=0; i<bombSpace.length; i++){
+        console.log("Index", bombSpace[i]);
+        grid[bombSpace[i]] = '💣';
+        grid = markNumber(bombSpace[i], grid, sides, corners);
+    }
+
     return grid;
 }
+
+
+function getSafeSpace(sides, corners, firstIdx){
+    // Safe Space
+    let safeSpace = [];
+
+    safeSpace.push(firstIdx);
+    if(corners.includes(firstIdx)){
+        if(firstIdx == corners[0]){
+            safeSpace.push(firstIdx + 1);
+            for(let i=0; i<2; i++){
+                safeSpace.push(firstIdx+width+i);
+            }
+        } else if (firstIdx == corners[1]){
+            safeSpace.push(firstIdx - 1);
+            for(let i=0; i<2; i++){
+                safeSpace.push(firstIdx+width-i);
+            }
+        } else if (firstIdx == corners[2]){
+            safeSpace.push(firstIdx + 1);
+            for(let i=0; i<2; i++){
+                safeSpace.push(firstIdx-width+i);
+            }
+        } else if (firstIdx == corners[3]){
+            safeSpace.push(firstIdx - 1);
+            for(let i=0; i<2; i++){
+                safeSpace.push(firstIdx-width-i);
+            }
+        }
+    } else {
+        if (sides[1].includes(firstIdx) || sides[3].includes(firstIdx)){
+            safeSpace.push(firstIdx + width);
+            safeSpace.push(firstIdx - width);
+            if(sides[1].includes(firstIdx)){
+                for(let i=-1; i<2; i++){
+                    safeSpace.push(firstIdx+1+i*width);
+                }
+            }
+
+            if(sides[3].includes(firstIdx)){
+                for(let i=-1; i<2; i++){
+                    safeSpace.push(firstIdx-1+i*width);
+                }
+            }
+        } else {
+            safeSpace.push(firstIdx+1);
+            safeSpace.push(firstIdx-1);
+            for (let i=0; i<3; i++){
+                if(!sides[2].includes(firstIdx)){
+                    safeSpace.push(firstIdx+width-1+i);
+                }
+
+                if(!sides[0].includes(firstIdx)){
+                    safeSpace.push(firstIdx-width-1+i);
+                }
+            }
+        }
+    }
+    // console.log(safeSpace);
+    return safeSpace;
+}
+
 
 // Mark tiles near bombs
 function markNumber(idx, grid, sides, corners){
     // Check if there's adjacent bomb
-    
 
     if (corners.includes(idx)){
         if(idx == corners[0]){          // top-left
@@ -93,17 +158,17 @@ function markNumber(idx, grid, sides, corners){
     } else {
         // Sides
         if (sides[1].includes(idx) || sides[3].includes(idx)){
-            grid[idx-7]=='💣' ? null: grid[idx-7] += 1;
-            grid[idx+7]=='💣' ? null: grid[idx+7] += 1;
+            grid[idx-width]=='💣' ? null: grid[idx-width] += 1;
+            grid[idx+width]=='💣' ? null: grid[idx+width] += 1;
             if (sides[1].includes(idx)){
                 for(let i=-1; i<2; i++){
-                    grid[idx+1+i*7]=='💣' ? null: grid[idx+1+i*7] += 1;
+                    grid[idx+1+i*width]=='💣' ? null: grid[idx+1+i*width] += 1;
                 }
             }
             
             if (sides[3].includes(idx)){
                 for (let i=-1; i<2; i++){
-                    grid[idx-1+i*7]=='💣' ? null: grid[idx-1+i*7] += 1;
+                    grid[idx-1+i*width]=='💣' ? null: grid[idx-1+i*width] += 1;
                 }
             }
         } else {
@@ -112,11 +177,11 @@ function markNumber(idx, grid, sides, corners){
             grid[idx+1] == '💣'? null: grid[idx+1] += 1;
             for(let i=0; i<3; i++){
                 if (!sides[2].includes(idx)){
-                    grid[idx+6+i]=='💣' ? null: grid[idx+6+i] += 1;
+                    grid[idx+width-1+i]=='💣' ? null: grid[idx+width-1+i] += 1;
                 }
 
                 if (!sides[0].includes(idx)){
-                    grid[idx-8+i]=='💣' ? null: grid[idx-8+i] += 1;
+                    grid[idx-width-1+i]=='💣' ? null: grid[idx-width-1+i] += 1;
                 }
             }
         }
@@ -142,50 +207,74 @@ function tileClicked(id){
         } else {
             tile.setAttribute("class", tileLabel)
         }
-        
     }
     
 }
 
-// Draw the board
-function drawboard(grid){
-    for (i=0; i<grid.length; i++){
-        let tile = document.createElement("div"); 
-        tile.setAttribute("id", "tile"+i);
+// Excavate
+
+
+
+// Initial Click (Should be Safe)
+function initialClick(id){
+    let firstIdx = id.slice(4, id.length);
+    console.log(id, firstIdx);
+
+    mainGrid = createBoard(mainGrid, Number(firstIdx));
+
+    // Change the tiles' attribute
+    for(let i=0; i<mainGrid.length; i++){
+        let tile = document.getElementById("tile"+i);
         tile.setAttribute("onclick", "tileClicked(id)");
 
         // Set Tile Attributes
-        switch(grid[i]){
+        switch(mainGrid[i]){
             case '💣':
                 tile.setAttribute("name", "bomb");
                 break;
             default:
                 // FIX HERE
-                if (grid[i] !=0 ){
-                    tile.setAttribute("name", grid[i]);
+                if (mainGrid[i] !=0 ){
+                    tile.setAttribute("name", mainGrid[i]);
                 } else {
                     tile.setAttribute("name", "blank");
-                }
-                
-                
+                }   
         }
+    }
 
+    // the First idx should be clicked
+    tileClicked(id);
+}
+
+
+// Draw the board
+function drawboard(grid){
+    // Make the Grid
+    grid = populate(grid);
+
+    // Create Elements per tile
+    for (i=0; i<grid.length; i++){
+        let tile = document.createElement("div"); 
+        tile.setAttribute("id", "tile"+i);
+        tile.setAttribute("onclick", "initialClick(id)");
         board.appendChild(tile);
     }
+
+    return grid;
 }
 
 function cleanBoard(grid){
     for (i=0; i<grid.length; i++){
         document.getElementById("tile"+i).remove();
     }
+    return grid;
 }
 
 
 // Run the functions
 function main(){
-    cleanBoard(mainGrid);
-    mainGrid = populate();
-    drawboard(mainGrid);
+    mainGrid = cleanBoard(mainGrid);
+    mainGrid = drawboard(mainGrid);
 }
 
 // Initial Start
