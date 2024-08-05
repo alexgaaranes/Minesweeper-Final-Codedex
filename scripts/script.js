@@ -1,6 +1,11 @@
 const board = document.getElementById("gameBoard");
 const resetBtn = document.getElementById("restart");
 var mainGrid = [];
+var sides = [[],[],[],[]];
+var corners = [0]
+
+// Check if update of corners is needed
+var canUpdateCorner = 0;
 
 // Size
 let width = 7;
@@ -27,9 +32,10 @@ function populate(){
 function createBoard(grid, firstIdx){
     // Initializations
     let mines = 5;
+    sides = [[],[],[],[]];
+    corners = [0]
 
     // indexes of sides excluding corners
-    let sides = [[],[],[],[]];
     for (let i=1; i<width-1; i++){  // TOP [0]
         sides[0].push(i);
     }
@@ -43,7 +49,7 @@ function createBoard(grid, firstIdx){
         sides[3].push(i);
     }
 
-    let corners = [0];  // top-left, top-right, bottom-left, bottom-right
+    // top-left, top-right, bottom-left, bottom-right
     corners.push(width-1);
     corners.push(width*height-width);
     corners.push(width*height-1);
@@ -193,6 +199,7 @@ function markNumber(idx, grid, sides, corners){
 
 // When a tile is clicked
 function tileClicked(id){
+    canUpdateCorner = false;
     let tile = document.getElementById(id);
 
     
@@ -209,39 +216,146 @@ function tileClicked(id){
     }
     
     excavate(id);
+    if (canUpdateCorner == 0){ console.log("updating corners");updateCorner();}
 }
+
+function cornerClicked(id){
+    let tile = document.getElementById(id);
+
+    if (tile.getAttribute("name") == "bomb"){
+        tile.setAttribute("class", "bomb");
+        tile.innerHTML = "💣";
+    } else {
+        let tileLabel = tile.getAttribute("name")
+        tile.setAttribute("class", "t"+tileLabel)
+        if (tileLabel != "0"){
+            tile.innerHTML = tileLabel;
+        }
+    }
+}
+
+// CHECK 4 DIRECTIONS
+function checkTop(idx){
+    if ((!sides[0].includes(idx) != (idx != corners[0]) != (idx != corners[1])) && mainGrid[idx-width] != '💣'){
+        const tile = document.getElementById("tile"+String(idx-width)); 
+        // console.log(tile);
+        return tile.getAttribute("class") != "t"+tile.getAttribute("name") ? true : false;
+    }
+}
+
+function checkLeft(idx){
+    if ((!sides[1].includes(idx) != (idx != corners[0]) != (idx != corners[2])) && mainGrid[idx-1] != '💣'){
+        const tile = document.getElementById("tile"+String(idx-1)); 
+        // console.log(tile);
+        return tile.getAttribute("class") != "t"+tile.getAttribute("name") ? true : false;
+    }
+}   
+
+function checkBottom(idx){
+    if ((!sides[2].includes(idx) != (idx != corners[2]) != (idx != corners[3])) && mainGrid[idx+width] != '💣'){
+        const tile = document.getElementById("tile"+String(idx+width)); 
+        // console.log(tile);
+        return tile.getAttribute("class") != "t"+tile.getAttribute("name") ? true : false;
+    }
+}
+
+function checkRight(idx){
+    if ((!sides[3].includes(idx) != (idx != corners[1]) != (idx != corners[3])) && mainGrid[idx+1] != '💣'){
+        const tile = document.getElementById("tile"+String(idx+1)); 
+        // console.log(tile);
+        return tile.getAttribute("class") != "t"+tile.getAttribute("name") ? true : false;
+    }
+}
+
+function isClicked(i){
+    let numbers = [1,2,3,4,5,6,7,8];
+    if(!numbers.includes(mainGrid[i]) && i > width*height && i < 0){return false;}
+    let id = "tile"+String(i);
+    // console.log(id);
+    const tile = document.getElementById(id);
+    return tile.getAttribute("class") == "t"+tile.getAttribute("name") ? true : false;
+}
+
+function updateCorner(){
+    for(let i=0; i<mainGrid.length; i++){
+        // console.log(i);
+        // Base case
+        if (mainGrid[i] == '💣' || mainGrid[i] == 0){continue;}
+
+        // Check grid corners
+        if (corners.includes(i)){
+            if(i == corners[0]){
+                isClicked(i+1) && isClicked(i+width) ? cornerClicked("tile"+String(i)): null;
+            } else if (i == corners[1]){
+                isClicked(i-1) && isClicked(i+width) ? cornerClicked("tile"+String(i)): null;
+            } else if (i == corners[2]){
+                isClicked(i+1) && isClicked(i-width) ? cornerClicked("tile"+String(i)): null;
+            } else if (i == corners[3]){
+                isClicked(i-1) && isClicked(i-width) ? cornerClicked("tile"+String(i)): null;
+            }
+        } else {
+            if(sides[1].includes(i)){
+                if (isClicked(i+1)){
+                    isClicked(i+width) ? cornerClicked("tile"+String(i))
+                    : isClicked(i-width) ? cornerClicked("tile"+String(i)) : null;
+                }
+            } else if (sides[3].includes(i)){
+                if (isClicked(i-1)){
+                    isClicked(i+width) ? cornerClicked("tile"+String(i))
+                    : isClicked(i-width) ? cornerClicked("tile"+String(i)) : null;
+                }
+            } else if (sides[0].includes(i)){
+                if (isClicked(i+width)){
+                    isClicked(i-1) ? cornerClicked("tile"+String(i))
+                    : isClicked(i+1) ? cornerClicked("tile"+String(i)) : null;
+                }
+            } else if (sides[0].includes(i)){
+                if (isClicked(i-width)){
+                    isClicked(i+1) ? cornerClicked("tile"+String(i))
+                    : isClicked(i-1) ? cornerClicked("tile"+String(i)) : null;
+                }
+            } else {
+                if (isClicked(i-width)){
+                    isClicked(i+1) ? cornerClicked("tile"+String(i))
+                    : isClicked(i-1) ? cornerClicked("tile"+String(i)) : null;
+                } else if (i+width < width*height && isClicked(i+width)){
+                    isClicked(i-1) ? cornerClicked("tile"+String(i))
+                    : isClicked(i+1) ? cornerClicked("tile"+String(i)) : null;
+                }
+            }
+        }
+    }
+}
+
 
 // Excavate
 function excavate(id){  // Take the id of the clicked tile and check 4 directions (up, down, left, right)
+    canUpdateCorner += 1;
     let idx = Number(id.slice(4, id.length));
     // console.log(id, idx);
+
+    if (mainGrid[idx] != 0){    // base case
+        return;
+    }   
     
-    if (mainGrid[idx] != 0){return;}    // base case
-    
-    if((idx - width > 0) && mainGrid[idx - width] != '💣'){             // Top
-        const tile = document.getElementById("tile"+String(idx-width));        
-        if(tile.getAttribute("class") != "t"+tile.getAttribute("name")){tileClicked("tile"+String(idx-width))};
+
+    if(checkTop(idx)){      // Top
+        tileClicked("tile"+String(idx-width));
+    };
+
+    if(checkLeft(idx)){     // Left
+        tileClicked("tile"+String(idx-1));
     }
 
-    if((idx - 1 % width != 0) && mainGrid[idx - 1] != '💣'){                // Left
-        console.log(idx, idx+1);
-        if(idx - 1 % width == 0){return ;}
-        const tile = document.getElementById("tile"+String(idx-1));
-        if(tile.getAttribute("class") != "t"+tile.getAttribute("name")){tileClicked("tile"+String(idx-1))};
+    if(checkBottom(idx)){   // Bottom
+        tileClicked("tile"+String(idx+width));
     }
 
-    if((idx + 1 % width != 0) && mainGrid[idx + 1] != '💣'){                // Right
-        console.log(idx, idx+1);
-        if(idx + 1 % width == 0){return ;}
-        const tile = document.getElementById("tile"+String(idx+1));
-        if(tile.getAttribute("class") != "t"+tile.getAttribute("name")){tileClicked("tile"+String(idx+1))};
+    if(checkRight(idx)){    // Right
+        tileClicked("tile"+String(idx+1))
     }
 
-    if((idx + width < width*height) && mainGrid[idx + width] != '💣'){      // Bottom
-        const tile = document.getElementById("tile"+String(idx+width));        
-        if(tile.getAttribute("class") != "t"+tile.getAttribute("name")){tileClicked("tile"+String(idx+width))};
-    }
-
+    canUpdateCorner -=1;
 }
 
 
@@ -263,7 +377,6 @@ function initialClick(id){
                 tile.setAttribute("name", "bomb");
                 break;
             default:
-                // FIX HERE
                 if (mainGrid[i] !=0 ){
                     tile.setAttribute("name", mainGrid[i]);
                 } else {
