@@ -276,6 +276,8 @@ function isClicked(i){
     return tile.getAttribute("class") == "t"+tile.getAttribute("name") ? true : false;
 }
 
+
+// Updates Right angles
 function updateCorner(){
     for(let i=0; i<mainGrid.length; i++){
         // console.log(i);
