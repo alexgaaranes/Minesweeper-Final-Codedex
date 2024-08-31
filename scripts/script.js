@@ -11,6 +11,9 @@ var canUpdateCorner = 0;
 let width = 7;
 let height = 7;
 
+// Bombs
+const initial_mines = 5;
+
 
 // Populate the Grid
 function populate(){
@@ -31,7 +34,7 @@ function populate(){
 // Function to Create the GameBoard
 function createBoard(grid, firstIdx){
     // Initializations
-    let mines = 5;
+    let mines = initial_mines;
     sides = [[],[],[],[]];
     corners = [0]
 
@@ -196,7 +199,6 @@ function markNumber(idx, grid, sides, corners){
     return grid;
 }
 
-
 // When a tile is clicked
 function tileClicked(id){
     canUpdateCorner = false;
@@ -207,6 +209,9 @@ function tileClicked(id){
     if (tile.getAttribute("name") == "bomb"){
         tile.setAttribute("class", "bomb");
         tile.innerHTML = "💣";
+        let title = document.querySelector("h1");
+        title.innerHTML = "You Lost!";
+        title.style.color = "red";
     } else {
         let tileLabel = tile.getAttribute("name")
         tile.setAttribute("class", "t"+tileLabel)
@@ -215,8 +220,15 @@ function tileClicked(id){
         }
     }
     
+    
     excavate(id);
     if (canUpdateCorner == 0){ console.log("updating corners");updateCorner();}
+
+    if(checkWin()){
+        title = document.querySelector("h1");
+    title.innerHTML = "You Won!";
+    title.style.color = "green";
+    }
 }
 
 function cornerClicked(id){
@@ -391,6 +403,18 @@ function initialClick(id){
     tileClicked(id);
 }
 
+// check if win
+function checkWin(){
+    let cleared = 0;
+    for (let i=0; i<mainGrid.length; i++){
+        let tile = document.getElementById("tile"+i);
+        if (tile.getAttribute("name") != "bomb" && tile.className){
+           cleared++;
+        }
+    }
+
+    return mainGrid.length-cleared == initial_mines ?true:false;
+}
 
 // Draw the board
 function drawboard(grid){
@@ -418,6 +442,9 @@ function cleanBoard(grid){
 
 // Run the functions
 function main(){
+    let title = document.querySelector("h1");
+    title.innerHTML = "Clear without clicking mines";
+    title.style.color = "purple";
     mainGrid = cleanBoard(mainGrid);
     mainGrid = drawboard(mainGrid);
 }
